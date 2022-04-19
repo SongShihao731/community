@@ -1,8 +1,11 @@
 package com.songshihao.community.controller;
 
+import com.google.code.kaptcha.Producer;
 import com.songshihao.community.entity.User;
 import com.songshihao.community.service.UserService;
 import com.songshihao.community.util.CommunityConstant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,12 +13,24 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Map;
 
 @Controller
 public class LoginController implements CommunityConstant {
+
+    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
+
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private Producer kaptchaProducer;
 
     @RequestMapping(path = "/register", method = RequestMethod.GET)
     public String getRegisterPage() {
@@ -36,13 +51,14 @@ public class LoginController implements CommunityConstant {
                     "注册成功，我们已经向您的邮箱发送了一封激活邮件，请尽快查收");
             model.addAttribute("target", "/index");
             return "/site/operate-result";
-        }else {
+        } else {
             model.addAttribute("usernameMsg", map.get("usernameMsg"));
             model.addAttribute("passwordMsg", map.get("passwordMsg"));
             model.addAttribute("emailMsg", map.get("emailMsg"));
             return "/site/register";
         }
     }
+
     // 要求激活的路径如下: http://localhost:8080/community/activation/101/code
     @RequestMapping(path = "/activation/{userId}/{code}", method = RequestMethod.GET)
     public String activation(Model model, @PathVariable("userId") int userId,
@@ -52,15 +68,39 @@ public class LoginController implements CommunityConstant {
             model.addAttribute("msg",
                     "激活成功，您的账号已经可以正常使用了！");
             model.addAttribute("target", "/login");
-        }else if(result == ACTIVATION_REPEAT) {
+        } else if (result == ACTIVATION_REPEAT) {
             model.addAttribute("msg",
                     "无效的操作，该账号已经激活过！");
             model.addAttribute("target", "/index");
-        }else {
+        } else {
             model.addAttribute("msg",
                     "激活失败，您提供的激活码不正确！");
             model.addAttribute("target", "/index");
         }
         return "/site/operate-result";
     }
+
+    // 生成验证码
+    @RequestMapping(path = "/kaptcha", method = RequestMethod.GET)
+    public void getKaptcha(HttpServletResponse response, HttpSession session) {
+        // 生成验证码
+        String text = kaptchaProducer.createText();
+        // 根据验证码生成图片
+        BufferedImage image = kaptchaProducer.createImage(text);
+
+        // 将验证码存入session中(敏感信息且需要多次用到所以存到session中)
+        session.setAttribute("kaptcha", text);
+
+        // 将图片输出给浏览器
+        // 设定输入的格式为
+        response.setContentType("image/png");
+        // 设定输出流(不用关闭流，springmvc维护)
+        try {
+            OutputStream os = response.getOutputStream();
+            ImageIO.write(image, "png", os);
+        } catch (IOException e) {
+            logger.error("相应验证码失败：", e.getMessage());
+        }
+    }
+
 }
