@@ -1,8 +1,10 @@
 package com.songshihao.community;
 
 import com.songshihao.community.dao.DiscussPostMapper;
+import com.songshihao.community.dao.LoginTicketMapper;
 import com.songshihao.community.dao.UserMapper;
 import com.songshihao.community.entity.DiscussPost;
+import com.songshihao.community.entity.LoginTicket;
 import com.songshihao.community.entity.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,9 @@ import java.util.List;
 @SpringBootTest
 @ContextConfiguration(classes = CommunityApplication.class)
 public class MapperTests {
+
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;
 
     @Autowired
     private UserMapper userMapper;
@@ -69,5 +74,26 @@ public class MapperTests {
         }
         int row = discussPostMapper.selectDiscussPostRows(149);
         System.out.println(row);
+    }
+
+    @Test
+    public void testInsertLoginTicket() {
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(101);
+        loginTicket.setTicket("abc");
+        loginTicket.setStatus(0);
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + 1000 * 60 * 10));
+
+        loginTicketMapper.insertLoginTicket(loginTicket);
+    }
+
+    @Test
+    public void testSelectLoginTicket() {
+        LoginTicket loginTicket = loginTicketMapper.selectByTicket("abc");
+        System.out.println(loginTicket);
+
+        loginTicketMapper.updateStatus("abc", 1);
+        loginTicket = loginTicketMapper.selectByTicket("abc");
+        System.out.println(loginTicket);;
     }
 }
