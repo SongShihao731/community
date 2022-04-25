@@ -197,4 +197,13 @@ public class UserService implements CommunityConstant {
     public void logout(String ticket) {
         loginTicketMapper.updateStatus(ticket, 1);
     }
+
+    /**
+     * 根据ticket查询LoginTicket对象
+     * @param ticket ticket 的字符串名称
+     * @return LoginTicket 对象
+     */
+    public LoginTicket findLoginTicket(String ticket) {
+        return loginTicketMapper.selectByTicket(ticket);
+    }
 }
