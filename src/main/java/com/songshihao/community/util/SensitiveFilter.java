@@ -73,8 +73,8 @@ public class SensitiveFilter {
      * @param text 待过滤的文本
      * @return 过滤后的文本
      */
-    public String filter(String text){
-        if(StringUtils.isBlank(text)){
+    public String filter(String text) {
+        if (StringUtils.isBlank(text)) {
             return null;
         }
         // 指针1
@@ -86,8 +86,8 @@ public class SensitiveFilter {
         // 结果
         StringBuilder sb = new StringBuilder();
 
-        while(begin < text.length()){
-            if(position < text.length()) {
+        while (begin < text.length()) {
+            if (position < text.length()) {
                 Character c = text.charAt(position);
 
                 // 跳过符号
@@ -122,7 +122,7 @@ public class SensitiveFilter {
                 }
             }
             // position遍历越界仍未匹配到敏感词
-            else{
+            else {
                 sb.append(text.charAt(begin));
                 position = ++begin;
                 tempNode = rootNode;
