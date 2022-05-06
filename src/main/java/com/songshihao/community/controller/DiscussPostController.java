@@ -3,11 +3,13 @@ package com.songshihao.community.controller;
 import com.songshihao.community.entity.DiscussPost;
 import com.songshihao.community.entity.User;
 import com.songshihao.community.service.DiscussPostService;
+import com.songshihao.community.service.UserService;
 import com.songshihao.community.util.CommunityUtil;
 import com.songshihao.community.util.HostHolder;
-import org.apache.catalina.Host;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -23,6 +25,9 @@ public class DiscussPostController {
 
     @Autowired
     private HostHolder hostHolder;
+
+    @Autowired
+    private UserService userService;
 
     @RequestMapping(path = "/add", method = RequestMethod.POST)
     @ResponseBody
@@ -41,4 +46,20 @@ public class DiscussPostController {
         // 报错的情况将来统一处理
         return CommunityUtil.getJSONString(0, "发布成功");
     }
+
+    // 帖子详情的查询
+    @RequestMapping(path = "/detail/{discussPostId}", method = RequestMethod.GET)
+    public String findDiscussPost(@PathVariable("discussPostId") int discussPostId, Model model) {
+        // 查询帖子
+        DiscussPost post = discussPostService.findDiscussPostById(discussPostId);
+        model.addAttribute("post", post);
+        // 查询帖子发表的用户
+        User user = userService.findUserById(post.getUserId());
+        model.addAttribute("user", user);
+        // （将来要做的事情）查询帖子回复
+
+        return "/site/discuss-detail";
+    }
+
+
 }
