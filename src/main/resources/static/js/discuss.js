@@ -1,4 +1,4 @@
-function like(btn, entityType, entityId) {
+function like(btn, entityType, entityId, entityUserId) {
     // 异步请求
     $.post(
         // 路径
@@ -6,7 +6,8 @@ function like(btn, entityType, entityId) {
         // 携带的参数
         {
             "entityType": entityType,
-            "entityId": entityId
+            "entityId": entityId,
+            "entityUserId":entityUserId
         },
         // 处理数据
         function (data) {
