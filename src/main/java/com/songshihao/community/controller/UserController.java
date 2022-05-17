@@ -2,8 +2,10 @@ package com.songshihao.community.controller;
 
 import com.songshihao.community.annotation.LoginRequired;
 import com.songshihao.community.entity.User;
+import com.songshihao.community.service.FollowService;
 import com.songshihao.community.service.LikeService;
 import com.songshihao.community.service.UserService;
+import com.songshihao.community.util.CommunityConstant;
 import com.songshihao.community.util.CommunityUtil;
 import com.songshihao.community.util.HostHolder;
 import org.slf4j.Logger;
@@ -26,7 +28,7 @@ import java.util.Map;
 
 @Controller
 @RequestMapping("/user")
-public class UserController {
+public class UserController implements CommunityConstant {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
@@ -47,6 +49,9 @@ public class UserController {
 
     @Autowired
     private LikeService likeService;
+
+    @Autowired
+    private FollowService followService;
 
     @LoginRequired
     @RequestMapping(path = "/setting", method = RequestMethod.GET)
@@ -150,6 +155,21 @@ public class UserController {
         // 点赞数量
         int likeCount = likeService.findUserLikeCount(userId);
         model.addAttribute("likeCount", likeCount);
+
+        // 关注数量
+        long followeeCount = followService.findFolloweeCount(userId, ENTITY_TYPE_USER);
+        model.addAttribute("followeeCount", followeeCount);
+        // 粉丝数量
+        long followerCount = followService.findFollowerCount(ENTITY_TYPE_USER, userId);
+        model.addAttribute("followerCount", followerCount);
+        // 是否已经关注
+        boolean hasFollowed = false;
+        if (hostHolder.getUser() != null) {
+            hasFollowed = followService.hasFollowed(hostHolder.getUser().getId(), ENTITY_TYPE_USER, userId);
+        }
+        model.addAttribute("hasFollowed", hasFollowed);
+
+
 
         return "/site/profile";
     }
