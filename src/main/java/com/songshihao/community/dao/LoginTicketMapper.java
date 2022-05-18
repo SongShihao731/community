@@ -4,6 +4,8 @@ import com.songshihao.community.entity.LoginTicket;
 import org.apache.ibatis.annotations.*;
 
 @Mapper
+// 因为采用redis获取ticket，所以通过传统方式获取ticket的方式不推荐使用了，现在增加注解@Deprecated
+@Deprecated
 public interface LoginTicketMapper {
     // 插入
     @Insert({
