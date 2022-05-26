@@ -20,7 +20,7 @@
         <if test="userId!=0">
             and user_id = #{userId}
         </if>
-        order by status desc, create_time desc
+        order by type desc, create_time desc
         limit #{offset}, #{limit}
     </select>
 

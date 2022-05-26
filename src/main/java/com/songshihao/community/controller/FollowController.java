@@ -1,7 +1,9 @@
 package com.songshihao.community.controller;
 
+import com.songshihao.community.entity.Event;
 import com.songshihao.community.entity.Page;
 import com.songshihao.community.entity.User;
+import com.songshihao.community.event.EventProducer;
 import com.songshihao.community.service.FollowService;
 import com.songshihao.community.service.UserService;
 import com.songshihao.community.util.CommunityConstant;
@@ -30,6 +32,9 @@ public class FollowController implements CommunityConstant {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private EventProducer eventProducer;
+
     // 关注逻辑，异步请求
     @RequestMapping(path = "/follow", method = RequestMethod.POST)
     @ResponseBody
@@ -37,6 +42,15 @@ public class FollowController implements CommunityConstant {
         User user = hostHolder.getUser();
 
         followService.follow(user.getId(), entityType, entityId);
+
+        // 触发关注事件
+        Event event = new Event()
+                .setTopic(TOPIC_FOLLOW)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityType(entityType)
+                .setEntityId(entityId)
+                .setEntityUserId(entityId);
+        eventProducer.fireEvent(event);
 
         return CommunityUtil.getJSONString(0, "已关注！");
     }
