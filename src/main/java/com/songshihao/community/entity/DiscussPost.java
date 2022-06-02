@@ -1,19 +1,46 @@
 package com.songshihao.community.entity;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
 import java.util.Date;
 
+// 加注解和elasticSearch关联,spring底层帮助生成实现类
+@Document(indexName = "discusspost", type = "_doc", shards = 6, replicas = 3)
 public class DiscussPost {
 
+    @Id
     private int id;
+
+    @Field(type = FieldType.Integer)
     private int userId;
+
+    // 互联网校招
+    // analyzer 的作用就是将互联网校招**存储的时候**拆分为更多的部分以便用户更好地搜索到这句话，此时需要用到下载插件的功能
+    // 而searchAnalyzer作用就是在**搜索的时候**选择更为智能的分词器ik_smart
+    @Field(type = FieldType.Text, analyzer = "ik_max_word", searchAnalyzer = "ik_smart")
     private String title;
+
+    @Field(type = FieldType.Text, analyzer = "ik_max_word", searchAnalyzer = "ik_smart")
     private String content;
+
     // 0 --> 普通  1 --> 置顶
+    @Field(type = FieldType.Integer)
     private int type;
+
     // 0 --> 正常 1--> 精华 2--> 拉黑
+    @Field(type = FieldType.Integer)
     private int status;
+
+    @Field(type = FieldType.Date)
     private Date createTime;
+
+    @Field(type = FieldType.Integer)
     private int commentCount;
+
+    @Field(type = FieldType.Double)
     private double score;
 
     public int getId() {
