@@ -1,9 +1,7 @@
 package com.songshihao.community.controller;
 
-import com.songshihao.community.entity.Comment;
-import com.songshihao.community.entity.DiscussPost;
-import com.songshihao.community.entity.Page;
-import com.songshihao.community.entity.User;
+import com.songshihao.community.entity.*;
+import com.songshihao.community.event.EventProducer;
 import com.songshihao.community.service.CommentService;
 import com.songshihao.community.service.DiscussPostService;
 import com.songshihao.community.service.LikeService;
@@ -40,6 +38,10 @@ public class DiscussPostController implements CommunityConstant {
     @Autowired
     private LikeService likeService;
 
+    @Autowired
+    private EventProducer eventProducer;
+
+    // 发布帖子
     @RequestMapping(path = "/add", method = RequestMethod.POST)
     @ResponseBody
     public String addDiscussPost(String title, String content) {
@@ -53,6 +55,15 @@ public class DiscussPostController implements CommunityConstant {
         discussPost.setContent(content);
         discussPost.setCreateTime(new Date());
         discussPostService.addDiscussPost(discussPost);
+
+        // 触发发帖事件，将帖子存到es服务器汇总
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(discussPost.getId())
+                .setUserId(user.getId());
+        // 触发事件
+        eventProducer.fireEvent(event);
 
         // 报错的情况将来统一处理
         return CommunityUtil.getJSONString(0, "发布成功");
