@@ -82,7 +82,7 @@ public class DiscussPostController implements CommunityConstant {
         long likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_POST, discussPostId);
         model.addAttribute("likeCount", likeCount);
         // 查询帖子的点赞状态
-        int likeStatus = hostHolder.getUser() ==null ? 0 :
+        int likeStatus = hostHolder.getUser() == null ? 0 :
                 likeService.findEntityLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_POST, discussPostId);
         model.addAttribute("likeStatus", likeStatus);
 
@@ -112,7 +112,7 @@ public class DiscussPostController implements CommunityConstant {
                 likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_COMMENT, comment.getId());
                 commentVo.put("likeCount", likeCount);
                 // 查询评论的点赞状态
-                likeStatus = hostHolder.getUser() ==null ? 0 :
+                likeStatus = hostHolder.getUser() == null ? 0 :
                         likeService.findEntityLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_COMMENT, comment.getId());
                 commentVo.put("likeStatus", likeStatus);
 
@@ -136,7 +136,7 @@ public class DiscussPostController implements CommunityConstant {
                         likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_COMMENT, reply.getId());
                         replyVo.put("likeCount", likeCount);
                         // 查询回复的点赞状态
-                        likeStatus = hostHolder.getUser() ==null ? 0 :
+                        likeStatus = hostHolder.getUser() == null ? 0 :
                                 likeService.findEntityLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_COMMENT, reply.getId());
                         replyVo.put("likeStatus", likeStatus);
 
@@ -157,5 +157,57 @@ public class DiscussPostController implements CommunityConstant {
         return "/site/discuss-detail";
     }
 
+    // 帖子置顶
+    @RequestMapping(path = "/top", method = RequestMethod.POST)
+    @ResponseBody
+    public String setTop(int id){
+        discussPostService.updateType(id, 1);
 
+        // 触发发帖事件，将结果同步到elasticSearch中
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(id)
+                .setUserId(hostHolder.getUser().getId());
+        // 触发事件
+        eventProducer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0);
+    }
+
+    // 帖子加精
+    @RequestMapping(path = "/wonderful", method = RequestMethod.POST)
+    @ResponseBody
+    public String setWonderful(int id){
+        discussPostService.updateStatus(id, 1);
+
+        // 触发发帖事件，将结果同步到elasticSearch中
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(id)
+                .setUserId(hostHolder.getUser().getId());
+        // 触发事件
+        eventProducer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0);
+    }
+
+    // 帖子删除
+    @RequestMapping(path = "/delete", method = RequestMethod.POST)
+    @ResponseBody
+    public String setDelete(int id){
+        discussPostService.updateStatus(id, 2);
+
+        // 触发删帖事件，将结果同步到elasticSearch中
+        Event event = new Event()
+                .setTopic(TOPIC_DELETE)
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(id)
+                .setUserId(hostHolder.getUser().getId());
+        // 触发事件
+        eventProducer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0);
+    }
 }
