@@ -59,7 +59,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Comm
                 )
                 .antMatchers(
                         // 删除
-                        "/discuss/delete"
+                        "/discuss/delete",
+                        // 访问UV和DAU查询
+                        "/data/**"
                 )
                 .hasAnyAuthority(
                         AUTHORITY_ADMIN
