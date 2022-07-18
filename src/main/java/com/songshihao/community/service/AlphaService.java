@@ -141,7 +141,7 @@ public class AlphaService {
         logger.debug("execute1");
     }
 
-    @Scheduled(initialDelay = 10000, fixedDelay = 1000)
+//    @Scheduled(initialDelay = 10000, fixedDelay = 1000)
     public void execute2() {
         logger.debug("execute2");
     }

@@ -18,8 +18,8 @@ public class DiscussPostService {
     @Autowired
     private SensitiveFilter sensitiveFilter;
 
-    public List<DiscussPost> findDiscussPosts(int userId, int offset, int limit) {
-        return discussPostMapper.selectDiscussPosts(userId, offset, limit);
+    public List<DiscussPost> findDiscussPosts(int userId, int offset, int limit, int orderMode) {
+        return discussPostMapper.selectDiscussPosts(userId, offset, limit, orderMode);
     }
 
     public int findDiscussPostRows(int userId) {
@@ -46,7 +46,7 @@ public class DiscussPostService {
     }
 
     // 更新评论的数量
-    public int updateCommentCount(int id, int commentCount){
+    public int updateCommentCount(int id, int commentCount) {
         return discussPostMapper.updateCommentCount(id, commentCount);
     }
 
@@ -58,5 +58,10 @@ public class DiscussPostService {
     // 更新帖子的状态
     public int updateStatus(int id, int status) {
         return discussPostMapper.updateStatus(id, status);
+    }
+
+    // 更新帖子的分数
+    public int updateScore(int id, double score) {
+        return discussPostMapper.updateScore(id, score);
     }
 }

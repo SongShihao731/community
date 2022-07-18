@@ -1,6 +1,7 @@
 package com.songshihao.community.config;
 
 import com.songshihao.community.quartz.AlphaJob;
+import com.songshihao.community.quartz.PostScoreRefreshJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.springframework.context.annotation.Bean;
@@ -41,6 +42,33 @@ public class QuartzConfig {
         factoryBean.setGroup("alphaTriggerGroup");
         // 多长时间执行以下这个任务
         factoryBean.setRepeatInterval(3000);
+        // 底层存储job状态的容器
+        factoryBean.setJobDataMap(new JobDataMap());
+        return factoryBean;
+    }
+
+    // 刷新帖子分数任务
+    @Bean
+    public JobDetailFactoryBean postScoreRefreshJobDetail() {
+        JobDetailFactoryBean factoryBean = new JobDetailFactoryBean();
+        factoryBean.setJobClass(PostScoreRefreshJob.class);
+        factoryBean.setName("postScoreRefreshJob");
+        factoryBean.setGroup("communityJobGroup");
+        // 是否持久保存
+        factoryBean.setDurability(true);
+        // 是否是可恢复的
+        factoryBean.setRequestsRecovery(true);
+        return factoryBean;
+    }
+
+    @Bean
+    public SimpleTriggerFactoryBean postScoreRefreshTrigger(JobDetail postScoreRefreshJobDetail) {
+        SimpleTriggerFactoryBean factoryBean = new SimpleTriggerFactoryBean();
+        factoryBean.setJobDetail(postScoreRefreshJobDetail);
+        factoryBean.setName("postScoreRefreshTrigger");
+        factoryBean.setGroup("communityTriggerGroup");
+        // 多长时间执行以下这个任务
+        factoryBean.setRepeatInterval(1000 * 60 * 5);
         // 底层存储job状态的容器
         factoryBean.setJobDataMap(new JobDataMap());
         return factoryBean;
