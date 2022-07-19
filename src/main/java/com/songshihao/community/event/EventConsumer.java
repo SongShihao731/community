@@ -12,9 +12,11 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,10 +36,18 @@ public class EventConsumer implements CommunityConstant {
     @Autowired
     private ElasticSearchService elasticSearchService;
 
+    // wk命令
+    @Value("${wk.image.command}")
+    private String wkImageCommand;
+
+    // 图片存储地址
+    @Value("${wk.image.storage}")
+    private String wkImageStorage;
+
     @KafkaListener(topics = {TOPIC_COMMENT, TOPIC_LIKE, TOPIC_FOLLOW})
     public void handleCommentMessage(ConsumerRecord record) {
         // 消息非空和格式判断
-        if (record == null){
+        if (record == null) {
             logger.error("消息内容为空");
         }
 
@@ -60,7 +70,7 @@ public class EventConsumer implements CommunityConstant {
         content.put("entityId", event.getEntityId());
 
         if (!event.getData().isEmpty()) {
-            for (Map.Entry<String,Object> entry : event.getData().entrySet()) {
+            for (Map.Entry<String, Object> entry : event.getData().entrySet()) {
                 content.put(entry.getKey(), entry.getValue());
             }
         }
@@ -72,7 +82,7 @@ public class EventConsumer implements CommunityConstant {
     @KafkaListener(topics = {TOPIC_PUBLISH})
     public void handlePublishMessage(ConsumerRecord record) {
         // 消息非空和格式判断
-        if (record == null){
+        if (record == null) {
             logger.error("消息内容为空");
         }
 
@@ -91,7 +101,7 @@ public class EventConsumer implements CommunityConstant {
     @KafkaListener(topics = {TOPIC_DELETE})
     public void handleDeleteMessage(ConsumerRecord record) {
         // 消息非空和格式判断
-        if (record == null){
+        if (record == null) {
             logger.error("消息内容为空");
         }
 
@@ -105,4 +115,32 @@ public class EventConsumer implements CommunityConstant {
         elasticSearchService.deleteDiscussPost(event.getEntityId());
     }
 
+    // 消费分享时间
+    @KafkaListener(topics = TOPIC_SHARE)
+    public void handleShareMessage(ConsumerRecord record) {
+        // 消息非空和格式判断
+        if (record == null) {
+            logger.error("消息内容为空");
+        }
+
+        Event event = JSONObject.parseObject(record.value().toString(), Event.class);
+        if (event == null) {
+            logger.error("消息格式错误！");
+            return;
+        }
+
+        String htmlUrl = (String) event.getData().get("htmlUrl");
+        String fileName = (String) event.getData().get("fileName");
+        String suffix = (String) event.getData().get("suffix");
+
+        // 命令
+        String cmd = wkImageCommand + " --quality 75 " + htmlUrl + " " + wkImageStorage + "/"
+                + fileName + suffix;
+        try {
+            Runtime.getRuntime().exec(cmd);
+            logger.info("生成长图成功: " + cmd);
+        } catch (IOException e) {
+            logger.error("生成长图失败: " + e.getMessage());
+        }
+    }
 }
