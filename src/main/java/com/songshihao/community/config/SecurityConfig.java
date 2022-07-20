@@ -61,7 +61,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Comm
                         // 删除
                         "/discuss/delete",
                         // 访问UV和DAU查询
-                        "/data/**"
+                        "/data/**",
+                        // 项目监控
+                        "/actuator/**"
                 )
                 .hasAnyAuthority(
                         AUTHORITY_ADMIN
